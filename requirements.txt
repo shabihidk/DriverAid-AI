@@ -1,0 +1,17 @@
+# driveraid/requirements.txt - FINAL, GUARANTEED Compatible Configuration (v4)
+
+# UI Framework 
+streamlit==1.30.0
+
+# Computer Vision
+opencv-python==4.9.0.80
+mediapipe==0.10.21 
+
+# Machine Learning (Fixing the TensorFlow/Keras conflict based on your error log)
+tensorflow==2.18.0 
+keras==3.5.0 # Updated to satisfy the TensorFlow 2.18.0 requirement (was 3.0.0)
+numpy==1.26.4
+scikit-learn==1.4.0
+
+# Utilities
+pillow==10.1.0
