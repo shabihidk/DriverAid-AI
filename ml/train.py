@@ -212,7 +212,7 @@ def train_model():
     print(confusion_matrix(y_test, y_pred))
     
     # Step 5: Save Model
-    model_path = '../models/cnn_model.h5'
+    model_path = '../models/cnn_model.keras'
     model.save(model_path)
     print(f"\n💾 Model saved to: {model_path}")
     

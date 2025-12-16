@@ -9,11 +9,15 @@ venv/
 ENV/
 .venv
 
-# Models
+# Models (Exclude all trained models - too large & regenerable)
 *.h5
+*.keras
 *.pkl
 *.pt
 *.pth
+models/*.h5
+models/*.keras
+models/*.json
 
 # Dataset
 ml/dataset/*
