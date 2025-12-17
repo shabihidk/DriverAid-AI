@@ -29,12 +29,13 @@ class DrowsinessRule:
 class EyeClosureRule(DrowsinessRule):
     """Rule: Eyes closed for extended period."""
     
-    def __init__(self, threshold_seconds: float = 2.0):
+    def __init__(self, threshold_seconds: float = 2.0, critical_threshold: float = 4.0):
         super().__init__(
             name="Prolonged Eye Closure",
-            severity="CRITICAL"
+            severity="HIGH"
         )
         self.threshold = threshold_seconds
+        self.critical_threshold = critical_threshold
         self.closure_start_time = None
         
     def check(self, data: Dict) -> bool:
@@ -56,7 +57,13 @@ class EyeClosureRule(DrowsinessRule):
             duration = current_time - self.closure_start_time
             self.trigger_duration = duration
             
-            if duration >= self.threshold:
+            if duration >= self.critical_threshold:
+                self.severity = "CRITICAL"
+                self.triggered = True
+                self.trigger_time = current_time
+                return True
+            elif duration >= self.threshold:
+                self.severity = "HIGH"
                 self.triggered = True
                 self.trigger_time = current_time
                 return True
@@ -74,7 +81,7 @@ class BlinkRateRule(DrowsinessRule):
     def __init__(self, window_seconds: float = 60.0, min_blinks: int = 10):
         super().__init__(
             name="Low Blink Rate",
-            severity="MEDIUM"
+            severity="LOW"
         )
         self.window = window_seconds
         self.min_blinks = min_blinks
@@ -115,7 +122,7 @@ class HeadPoseRule(DrowsinessRule):
     def __init__(self, pitch_threshold: float = 25.0, duration_seconds: float = 3.0):
         super().__init__(
             name="Head Nodding/Tilting",
-            severity="HIGH"
+            severity="MEDIUM"
         )
         self.pitch_threshold = pitch_threshold
         self.duration_threshold = duration_seconds
@@ -155,7 +162,8 @@ class ExpertSystem:
         """Initialize expert system with all rules."""
         self.rules = [
             EyeClosureRule(threshold_seconds=2.0),
-            HeadPoseRule(pitch_threshold=35.0, duration_seconds=4.0),
+            HeadPoseRule(pitch_threshold=48.0, duration_seconds=4.0),
+            BlinkRateRule(window_seconds=90.0, min_blinks=12),
         ]
         
         self.current_alert_level = "NONE"
