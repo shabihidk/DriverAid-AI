@@ -4,7 +4,7 @@
 streamlit==1.30.0
 
 # Computer Vision
-opencv-python==4.9.0.80
+opencv-python-headless==4.9.0.80 
 mediapipe==0.10.21 
 
 # Machine Learning (Fixing the TensorFlow/Keras conflict based on your error log)
