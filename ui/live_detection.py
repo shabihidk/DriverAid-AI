@@ -5,9 +5,15 @@ Live Detection Tab - Real-time drowsiness monitoring
 import streamlit as st
 import cv2
 import time
-import winsound
+import platform
 import sys
 import os
+
+# Safe cross-platform import for winsound (Windows only hardware audio)
+if platform.system() == "Windows":
+    import winsound
+else:
+    winsound = None
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'services'))
 
@@ -18,8 +24,8 @@ from ui.components import render_alert_panel, get_metric_status
 
 
 def trigger_alert_sound(alert_level):
-    """Play appropriate beep sound for alert level."""
-    if not st.session_state.audio_enabled:
+    """Play appropriate beep sound for alert level if running on Windows."""
+    if not st.session_state.audio_enabled or not winsound:
         return
     
     current_time = time.time()
@@ -92,11 +98,11 @@ def process_frame_with_system(frame):
         
         ear = vision_data['ear_avg']
         cv2.putText(annotated_frame, f"EAR: {ear:.3f}", (10, 30),
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
         
         pose = vision_data['head_pose']
         cv2.putText(annotated_frame, f"Pitch: {pose['pitch']:.1f}", (10, 60),
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 0), 2)
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 0), 2)
         
         if cnn_prediction:
             state = cnn_prediction['state']
@@ -105,7 +111,7 @@ def process_frame_with_system(frame):
                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 165, 0), 2)
     else:
         cv2.putText(annotated_frame, "No face detected", (10, 30),
-                   cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
     
     alert_color_bgr = {
         'NONE': (40, 167, 69),
@@ -116,8 +122,8 @@ def process_frame_with_system(frame):
     }
     color = alert_color_bgr.get(alert_data['alert_level'], (128, 128, 128))
     cv2.putText(annotated_frame, f"Alert: {alert_data['alert_level']}", 
-               (annotated_frame.shape[1] - 250, 30),
-               cv2.FONT_HERSHEY_SIMPLEX, 0.8, color, 2)
+                (annotated_frame.shape[1] - 250, 30),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.8, color, 2)
     
     metrics = {
         'ear': vision_data['ear_avg'] if vision_data else 0.0,
