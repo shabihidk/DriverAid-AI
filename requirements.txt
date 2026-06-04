@@ -1,17 +1,27 @@
-# Force Headless OpenCV first
-opencv-python-headless==4.9.0.80
+# ============================================================
+# DriverAid-AI  -  Streamlit Community Cloud requirements
+# ------------------------------------------------------------
+# DO NOT add opencv-python-headless here.
+# MediaPipe hard-depends on opencv-contrib-python (the GUI build),
+# so pip will install it regardless and it will WIN the cv2/ namespace.
+# We let MediaPipe install its GUI OpenCV and satisfy the two missing
+# system libraries (libGL.so.1 + libgthread-2.0.so.0) via packages.txt.
+# ============================================================
 
-# WebRTC for the webcam
+# --- Core app + webcam transport ---
+streamlit==1.39.0
 streamlit-webrtc==0.47.0
 
-# Core Data/ML
-streamlit
-numpy
-pandas
-scikit-learn
-Pillow
+# --- Computer vision (pulls opencv-contrib-python automatically) ---
+mediapipe==0.10.14
 
-# Deep Learning (Keep these exact versions if possible, or omit versions if they clash)
-tensorflow
-keras
-mediapipe
+# --- Deep learning (CPU build: smaller + fits Community Cloud) ---
+# tf.keras ships INSIDE tensorflow. Do NOT also install standalone `keras`,
+# it pulls Keras 3 and silently changes the .keras save/load format.
+tensorflow-cpu==2.16.1
+
+# --- Numerics / utils (pinned for TF 2.16 + MediaPipe 0.10 compatibility) ---
+numpy==1.26.4
+pandas==2.2.2
+scikit-learn==1.4.2
+Pillow==10.3.0

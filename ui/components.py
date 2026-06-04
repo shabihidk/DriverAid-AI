@@ -83,7 +83,9 @@ def render_sidebar():
             if st.button("Reset Statistics"):
                 st.session_state.frame_count = 0
                 st.session_state.alert_count = 0
-                st.session_state.expert.reset()
+                expert = st.session_state.get('expert')
+                if expert is not None:
+                    expert.reset()
                 st.success("Statistics reset")
         
         st.markdown("---")

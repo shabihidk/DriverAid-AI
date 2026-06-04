@@ -20,6 +20,12 @@ from sklearn.metrics import classification_report, confusion_matrix
 import json
 from datetime import datetime
 
+# Resolve paths relative to THIS file so training works from any cwd
+# (e.g. `python ml/train.py` from repo root, or `python train.py` from ml/).
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+REPO_ROOT = os.path.dirname(SCRIPT_DIR)
+MODELS_DIR = os.path.join(REPO_ROOT, 'models')
+
 CONFIG = {
     'img_height': 32,
     'img_width': 32,
@@ -33,7 +39,9 @@ CONFIG = {
 class DrowsinessDataLoader:
     """Handles MRL Eye Dataset loading and preprocessing."""
     
-    def __init__(self, dataset_path='dataset'):
+    def __init__(self, dataset_path=None):
+        if dataset_path is None:
+            dataset_path = os.path.join(SCRIPT_DIR, 'dataset')
         self.dataset_path = dataset_path
         self.open_path = os.path.join(dataset_path, 'open')
         self.closed_path = os.path.join(dataset_path, 'closed')
@@ -64,12 +72,14 @@ class DrowsinessDataLoader:
             if filename.endswith(('.jpg', '.png', '.jpeg')):
                 img_path = os.path.join(folder_path, filename)
                 try:
-                    img = keras.preprocessing.image.load_img(
+                    # keras.utils.* works on both Keras 2 (TF<=2.15) and
+                    # Keras 3 (TF>=2.16). keras.preprocessing.* is removed in Keras 3.
+                    img = keras.utils.load_img(
                         img_path,
                         target_size=(CONFIG['img_height'], CONFIG['img_width']),
                         color_mode='grayscale'
                     )
-                    img_array = keras.preprocessing.image.img_to_array(img)
+                    img_array = keras.utils.img_to_array(img)
                     images.append(img_array)
                     labels.append(label)
                 except Exception as e:
@@ -190,7 +200,8 @@ def train_model():
     print("\nConfusion Matrix:")
     print(confusion_matrix(y_test, y_pred))
     
-    model_path = '../models/cnn_model.keras'
+    os.makedirs(MODELS_DIR, exist_ok=True)
+    model_path = os.path.join(MODELS_DIR, 'cnn_model.keras')
     model.save(model_path)
     print(f"\nModel saved to: {model_path}")
     
@@ -209,7 +220,7 @@ def train_model():
         'final_val_acc': float(history.history['val_accuracy'][-1])
     }
     
-    report_path = '../models/training_report.json'
+    report_path = os.path.join(MODELS_DIR, 'training_report.json')
     with open(report_path, 'w') as f:
         json.dump(report, f, indent=4)
     print(f"Training report saved to: {report_path}")
