@@ -43,9 +43,19 @@ def _ensure_headless_cv2():
             check=True,
         )
 
+    # The failed GUI import left OpenCV's loader in a half-initialized state:
+    #   - sys.OpenCV_LOADER is set, which makes the next load abort as "recursion"
+    #   - cv2 / cv2.* remain in sys.modules
+    #   - the GUI loader appended its own site-packages/cv2 dir to sys.path
+    # Clean all of that so the headless build in /tmp can bootstrap fresh.
+    if hasattr(sys, "OpenCV_LOADER"):
+        del sys.OpenCV_LOADER
+    for _mod in [m for m in sys.modules if m == "cv2" or m.startswith("cv2.")]:
+        del sys.modules[_mod]
+    sys.path[:] = [p for p in sys.path if not p.rstrip("/").endswith("site-packages/cv2")]
+
     if _HEADLESS_DIR not in sys.path:
         sys.path.insert(0, _HEADLESS_DIR)
-    sys.modules.pop("cv2", None)  # drop the half-loaded GUI module
     importlib.invalidate_caches()
     import cv2  # noqa: F401  (now resolves to the headless build in /tmp)
 
