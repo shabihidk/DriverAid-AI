@@ -11,6 +11,7 @@ Expected dataset structure:
 """
 
 import os
+import sys
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
@@ -217,13 +218,29 @@ def train_model():
         },
         'training_epochs': len(history.history['loss']),
         'final_train_acc': float(history.history['accuracy'][-1]),
-        'final_val_acc': float(history.history['val_accuracy'][-1])
+        'final_val_acc': float(history.history['val_accuracy'][-1]),
+        'history': {
+            k: [float(v) for v in vals]
+            for k, vals in history.history.items()
+        },
     }
     
     report_path = os.path.join(MODELS_DIR, 'training_report.json')
     with open(report_path, 'w') as f:
         json.dump(report, f, indent=4)
     print(f"Training report saved to: {report_path}")
+
+    try:
+        import subprocess
+        export_script = os.path.join(SCRIPT_DIR, 'export_readme_assets.py')
+        print("\nExporting README figures...")
+        subprocess.run(
+            [sys.executable, export_script, '--reevaluate'],
+            cwd=REPO_ROOT,
+            check=False,
+        )
+    except Exception as e:
+        print(f"Note: README asset export skipped ({e})")
     
     print("\n" + "=" * 60)
     print("TRAINING COMPLETE")
