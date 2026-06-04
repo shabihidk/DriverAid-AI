@@ -9,15 +9,16 @@ venv/
 ENV/
 .venv
 
-# Models (Exclude all trained models - too large & regenerable)
+# Models (Exclude all trained models EXCEPT our final cnn_model)
 *.h5
 *.keras
 *.pkl
 *.pt
 *.pth
 models/*.h5
-models/*.keras
 models/*.json
+# Allow the final deployment model
+!models/cnn_model.keras
 
 # Dataset
 ml/dataset/*
