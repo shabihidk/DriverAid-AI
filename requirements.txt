@@ -26,3 +26,7 @@ numpy==1.26.4
 pandas==2.2.2
 scikit-learn==1.4.2
 Pillow==10.3.0
+
+# --- Plotting (used by ui/visualizations.py) ---
+matplotlib==3.10.9
+seaborn==0.13.2
