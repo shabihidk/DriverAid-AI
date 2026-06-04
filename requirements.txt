@@ -1,21 +1,17 @@
-# driveraid/requirements.txt - FINAL, GUARANTEED Compatible Configuration (v4)
+# Force Headless OpenCV first
+opencv-python-headless==4.9.0.80
 
-# UI Framework 
-streamlit==1.30.0
+# WebRTC for the webcam
+streamlit-webrtc==0.47.0
 
-# Computer Vision
-opencv-python-headless==4.9.0.80 
-mediapipe==0.10.21 
+# Core Data/ML
+streamlit
+numpy
+pandas
+scikit-learn
+Pillow
 
-# Machine Learning
-tensorflow==2.18.0 
-keras==3.5.0 # Updated to satisfy the TensorFlow 2.18.0 requirement (was 3.0.0)
-numpy==1.26.4
-scikit-learn==1.4.0
-seaborn
-
-
-# Utilities
-pillow==10.1.0
-
-streamlit-webrtc
+# Deep Learning (Keep these exact versions if possible, or omit versions if they clash)
+tensorflow
+keras
+mediapipe
