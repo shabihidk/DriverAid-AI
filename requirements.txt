@@ -1,11 +1,12 @@
 # ============================================================
 # DriverAid-AI  -  Streamlit Community Cloud requirements
 # ------------------------------------------------------------
-# DO NOT add opencv-python-headless here.
-# MediaPipe hard-depends on opencv-contrib-python (the GUI build),
-# so pip will install it regardless and it will WIN the cv2/ namespace.
-# We let MediaPipe install its GUI OpenCV and satisfy the two missing
-# system libraries (libGL.so.1 + libgthread-2.0.so.0) via packages.txt.
+# NOTE on OpenCV: MediaPipe hard-depends on opencv-contrib-python (GUI build),
+# which needs system libs (libGL/libgthread) that aren't on Streamlit Cloud.
+# We do NOT use packages.txt (the apt base image is unstable). Instead, the
+# headless guard at the TOP of app.py swaps cv2 to opencv-python-headless at
+# startup. Do not pin an opencv line here - let MediaPipe resolve it, the
+# guard fixes it at runtime.
 # ============================================================
 
 # --- Core app + webcam transport ---
