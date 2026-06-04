@@ -8,32 +8,49 @@ Main Application Entry Point
 #
 # MediaPipe hard-depends on opencv-contrib-python (the GUI build), which needs
 # libGL.so.1 + libgthread-2.0.so.0 - system libs that are NOT present on
-# Streamlit Community Cloud. Rather than fight apt/packages.txt (which breaks
-# every time Streamlit's Debian base image changes), we make cv2 headless at
-# startup. opencv-python-headless ships the same cv2 API minus the GUI libs,
-# and MediaPipe only uses standard cv2 calls at runtime.
+# Streamlit Community Cloud. We cannot uninstall it at runtime because the venv
+# site-packages is mounted READ-ONLY after the build phase.
+#
+# Instead, we install opencv-python-headless (same cv2 API, no GUI libs) into a
+# WRITABLE temp dir and put it FIRST on sys.path so it shadows the read-only GUI
+# build. MediaPipe then imports the headless cv2 too. No apt / packages.txt and
+# no writes to the locked venv - works regardless of Streamlit's Debian image.
 # ----------------------------------------------------------------------------
+import os
 import sys
 import subprocess
+import importlib
 
 _OPENCV_HEADLESS = "opencv-python-headless==4.10.0.84"
+_HEADLESS_DIR = "/tmp/driveraid_cv2"
 
-try:
-    import cv2  # noqa: F401  (probe whether the current cv2 imports cleanly)
-except (ImportError, OSError):
-    # The GUI build failed to load (missing libGL). Replace it with headless.
-    subprocess.run(
-        [sys.executable, "-m", "pip", "uninstall", "-y",
-         "opencv-contrib-python", "opencv-python"],
-        check=False,
-    )
-    subprocess.run(
-        [sys.executable, "-m", "pip", "install", "--no-cache-dir", _OPENCV_HEADLESS],
-        check=True,
-    )
-    import importlib
+
+def _ensure_headless_cv2():
+    try:
+        import cv2  # noqa: F401  (does the current cv2 import cleanly?)
+        return
+    except Exception:
+        pass  # GUI build failed to load (missing libGL) - install headless below.
+
+    os.makedirs(_HEADLESS_DIR, exist_ok=True)
+    if not os.path.isdir(os.path.join(_HEADLESS_DIR, "cv2")):
+        # --no-deps: numpy already exists in site-packages. Installing deps here
+        # could drop numpy 2.x into /tmp and shadow the pinned numpy 1.26.4,
+        # breaking TensorFlow/MediaPipe.
+        subprocess.run(
+            [sys.executable, "-m", "pip", "install", "--no-cache-dir", "--no-deps",
+             "--target", _HEADLESS_DIR, _OPENCV_HEADLESS],
+            check=True,
+        )
+
+    if _HEADLESS_DIR not in sys.path:
+        sys.path.insert(0, _HEADLESS_DIR)
+    sys.modules.pop("cv2", None)  # drop the half-loaded GUI module
     importlib.invalidate_caches()
-    import cv2  # noqa: F401  (now resolves to the headless build)
+    import cv2  # noqa: F401  (now resolves to the headless build in /tmp)
+
+
+_ensure_headless_cv2()
 
 import streamlit as st
 
