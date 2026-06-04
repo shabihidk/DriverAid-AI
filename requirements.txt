@@ -10,8 +10,10 @@
 # ============================================================
 
 # --- Core app + webcam transport ---
+# streamlit-webrtc < 0.48.1 calls the removed st.experimental_rerun and crashes
+# on streamlit >= 1.39. 0.48.1 is the maintainer's documented fix for 1.39.
 streamlit==1.39.0
-streamlit-webrtc==0.47.0
+streamlit-webrtc==0.48.1
 
 # --- Computer vision (pulls opencv-contrib-python automatically) ---
 mediapipe==0.10.14
